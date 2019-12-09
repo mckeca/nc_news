@@ -20,6 +20,12 @@ describe('formatDates', () => {
     const actual = formatDates(input);
     expect(actual[0]).to.have.keys('name', 'age', 'created_at');
   });
+  it('should not mutate input data', () => {
+    const input = [{ name: 'Cal', age: 25, created_at: Date.now() }];
+    const inputClone = [{ name: 'Cal', age: 25, created_at: Date.now() }];
+    formatDates(input);
+    expect(input).to.eql(inputClone);
+  });
   it('should iterate through an array of multiple objects', () => {
     const input = [
       { name: 'Cal', age: 25, created_at: Date.now() },
@@ -66,7 +72,7 @@ describe('makeRefObj', () => {
   });
 });
 
-describe.only('formatComments', () => {
+describe('formatComments', () => {
   it('when passed an empty array, should return an empty array', () => {
     expect(formatComments([])).to.eql([]);
   });
