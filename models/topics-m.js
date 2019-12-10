@@ -1,8 +1,7 @@
-const knex = require('knex');
+const connection = require('../db/connection');
 
 const selectTopics = () => {
-  console.log('into the model');
-  return knex('topics')
+  return connection('topics')
     .select('*')
     .returning('*');
 };
