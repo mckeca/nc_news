@@ -7,7 +7,7 @@ const {
 } = require('../models/articles-m');
 
 exports.getArticles = (req, res, next) => {
-  selectArticles()
+  selectArticles(req.query)
     .then(articles => {
       res.status(200).send({ articles });
     })
@@ -33,7 +33,11 @@ exports.patchArticle = (req, res, next) => {
 };
 
 exports.getCommentsByArticle = (req, res, next) => {
-  selectCommentsByArticle(req.params.article_id)
+  selectCommentsByArticle(
+    req.params.article_id,
+    req.query.sort_by,
+    req.query.order
+  )
     .then(comments => {
       res.status(200).send({ comments });
     })

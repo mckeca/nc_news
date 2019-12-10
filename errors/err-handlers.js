@@ -15,7 +15,7 @@ exports.customErrHandler = (err, req, res, next) => {
 };
 
 exports.psqlErrors = (err, req, res, next) => {
-  console.log(err.code);
+  console.log(err);
   const errRef = {
     '22P02': [400, 'Bad Request - Invalid Data Type'],
     23502: [400, 'Bad Request - Violating Not Null Constraint'],
