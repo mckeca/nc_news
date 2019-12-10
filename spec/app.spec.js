@@ -184,8 +184,8 @@ describe('/server', () => {
             .send({ inc_votes: 50 })
             .expect(202)
             .then(response => {
-              expect(response.body.updatedArticle.votes).to.equal(150);
-              expect(response.body.updatedArticle).to.have.keys(
+              expect(response.body.article.votes).to.equal(150);
+              expect(response.body.article).to.have.keys(
                 'article_id',
                 'title',
                 'body',
@@ -202,7 +202,7 @@ describe('/server', () => {
             .send({ inc_votes: -1000000 })
             .expect(202)
             .then(response => {
-              expect(response.body.updatedArticle.votes).to.equal(0);
+              expect(response.body.article.votes).to.equal(0);
             });
         });
         it('ERROR 404: returns a not found error when passed an article id that does not exist', () => {
@@ -322,7 +322,7 @@ describe('/server', () => {
           })
           .expect(201)
           .then(response => {
-            expect(response.body.insertedComment).to.have.keys(
+            expect(response.body.comment).to.have.keys(
               'comment_id',
               'author',
               'article_id',
@@ -330,8 +330,8 @@ describe('/server', () => {
               'created_at',
               'body'
             );
-            expect(response.body.insertedComment.article_id).to.equal(2);
-            expect(response.body.insertedComment.votes).to.equal(0);
+            expect(response.body.comment.article_id).to.equal(2);
+            expect(response.body.comment.votes).to.equal(0);
           });
       });
       it('POST 201: ignores any erroneous column names', () => {
@@ -345,7 +345,7 @@ describe('/server', () => {
           })
           .expect(201)
           .then(response => {
-            expect(response.body.insertedComment).to.have.keys(
+            expect(response.body.comment).to.have.keys(
               'comment_id',
               'author',
               'article_id',
@@ -415,10 +415,11 @@ describe('/server', () => {
       it('PATCH 202: returns an object containing the updated comment', () => {
         return request(app)
           .patch('/api/comments/1')
-          .send({ votes: 50 })
+          .send({ inc_votes: 50 })
           .expect(202)
           .then(response => {
-            expect(response.body.updatedComment).to.have.keys(
+            expect(response.body.comment.votes).to.equal(66);
+            expect(response.body.comment).to.have.keys(
               'comment_id',
               'author',
               'article_id',
@@ -426,13 +427,21 @@ describe('/server', () => {
               'created_at',
               'body'
             );
-            expect(response.body.updatedComment.votes).to.equal(50);
+          });
+      });
+      it('PATCH 202: cannot reduce an articles votes past 0', () => {
+        return request(app)
+          .patch('/api/comments/1')
+          .send({ inc_votes: -1000000 })
+          .expect(202)
+          .then(response => {
+            expect(response.body.comment.votes).to.equal(0);
           });
       });
       it('ERROR 404: returns a Not Found error when passed a non existant comment_id', () => {
         return request(app)
           .patch('/api/comments/999')
-          .send({ votes: 50 })
+          .send({ inc_votes: 50 })
           .expect(404)
           .then(response => {
             expect(response.body.msg).to.equal('Comment Not Found');
@@ -441,7 +450,7 @@ describe('/server', () => {
       it('ERROR 400: returns a Bad Request error when passed an invalid comment_id', () => {
         return request(app)
           .patch('/api/comments/banana')
-          .send({ votes: 50 })
+          .send({ inc_votes: 50 })
           .expect(400)
           .then(response => {
             expect(response.body.msg).to.equal(
@@ -449,19 +458,21 @@ describe('/server', () => {
             );
           });
       });
-      it('ERROR 404: returns a Not Found error when passed a non existant column in body', () => {
+      it('ERROR 404: returns a Bad Request error when passed an incorrect key in body', () => {
         return request(app)
           .patch('/api/comments/1')
           .send({ banana: 150 })
-          .expect(404)
+          .expect(400)
           .then(response => {
-            expect(response.body.msg).to.equal('Column Not Found');
+            expect(response.body.msg).to.equal(
+              'Bad Request - inc_votes not present'
+            );
           });
       });
       it('ERROR 400: returns a Bad Request error when passed an invalid data value for specified column', () => {
         return request(app)
           .patch('/api/comments/1')
-          .send({ votes: 'banana' })
+          .send({ inc_votes: 'banana' })
           .expect(400)
           .then(response => {
             expect(response.body.msg).to.equal(
@@ -475,7 +486,9 @@ describe('/server', () => {
           .send({})
           .expect(400)
           .then(response => {
-            expect(response.body.msg).to.equal('Bad Request - Empty Body');
+            expect(response.body.msg).to.equal(
+              'Bad Request - inc_votes not present'
+            );
           });
       });
       it('DELETE 204: returns a status code of 204 but no body on succesful delete', () => {

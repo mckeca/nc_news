@@ -24,8 +24,8 @@ exports.getArticleById = (req, res, next) => {
 
 exports.patchArticle = (req, res, next) => {
   updateArticle(req.params.article_id, req.body)
-    .then(updatedArticle => {
-      res.status(202).send({ updatedArticle });
+    .then(article => {
+      res.status(202).send({ article });
     })
     .catch(err => {
       next(err);
@@ -48,8 +48,8 @@ exports.getCommentsByArticle = (req, res, next) => {
 
 exports.postCommentToArticle = (req, res, next) => {
   insertCommentByArticle(req.body, req.params.article_id)
-    .then(insertedComment => {
-      res.status(201).send({ insertedComment });
+    .then(comment => {
+      res.status(201).send({ comment });
     })
     .catch(err => {
       next(err);

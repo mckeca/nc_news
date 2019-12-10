@@ -1,14 +1,32 @@
 const connection = require('../db/connection');
 
-const updateCommentById = (newData, comment_id) => {
+const updateCommentById = ({ inc_votes }, comment_id) => {
+  if (!inc_votes)
+    return Promise.reject({
+      status: 400,
+      msg: 'Bad Request - inc_votes not present'
+    });
   return connection('comments')
+    .select('*')
     .where('comment_id', '=', comment_id)
-    .update(newData)
     .returning('*')
     .then(commentRows => {
-      if (!commentRows.length)
+      if (!commentRows.length) {
         return Promise.reject({ status: 404, msg: 'Comment Not Found' });
-      return commentRows[0];
+      } else {
+        commentRows[0].votes += inc_votes;
+        if (commentRows[0].votes < 0) commentRows[0].votes = 0;
+        return commentRows[0];
+      }
+    })
+    .then(incrementedComment => {
+      return connection('comments')
+        .where('comment_id', '=', comment_id)
+        .update(incrementedComment)
+        .returning('*')
+        .then(updatedComment => {
+          return updatedComment[0];
+        });
     });
 };
 
