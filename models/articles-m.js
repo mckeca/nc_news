@@ -1,5 +1,35 @@
 const connection = require('../db/connection');
 
+const checkTopic = (topic, rows) => {
+  return connection
+    .select('slug')
+    .from('topics')
+    .where('slug', '=', topic)
+    .returning('*')
+    .then(topics => {
+      if (!topics.length) {
+        return Promise.reject({ status: 404, msg: 'Topic Not Found' });
+      } else {
+        return rows
+      }
+    });
+};
+
+const checkAuthor = (author, rows) => {
+  return connection
+    .select('username')
+    .from('users')
+    .where('username', '=', author)
+    .returning('*')
+    .then(users => {
+      if (!users.length) {
+        return Promise.reject({ status: 404, msg: 'Author Not Found' });
+      } else {
+        return rows;
+      }
+    });
+};
+
 const selectArticles = ({
   sort_by = 'created_at',
   order = 'desc',
@@ -14,7 +44,7 @@ const selectArticles = ({
     .orderBy(sort_by, order)
     .modify(query => {
       if (otherKeys['author']) {
-        query.where('articles.author', '=', `${otherKeys['author']}`);
+        query.where('articles.author', '=', `${otherKeys['author']}`)
       }
     })
     .modify(query => {
@@ -24,6 +54,12 @@ const selectArticles = ({
     })
     .returning('*')
     .then(rows => {
+      if (!rows.length && otherKeys['author']) {
+        return checkAuthor(otherKeys['author'], rows)
+      }
+      if (!rows.length && otherKeys['topic']) {
+        return checkTopic(otherKeys['topic'], rows)
+      }
       return rows.map(({ body, ...otherKeys }) => {
         return { ...otherKeys };
       });
@@ -46,34 +82,15 @@ const selectArticleById = article_id => {
     });
 };
 
-const updateArticle = (article_id, { inc_votes }) => {
-  if (!inc_votes)
-    return Promise.reject({
-      status: 400,
-      msg: 'Bad Request - inc_votes not present'
-    });
+const updateArticle = (article_id, { inc_votes = 0 }) => {
   return connection('articles')
-    .select('*')
+    .increment('votes', inc_votes)
     .where('article_id', '=', article_id)
     .returning('*')
-    .then(articleRows => {
-      if (!articleRows.length) {
-        return Promise.reject({ status: 404, msg: 'Article Not Found' });
-      } else {
-        articleRows[0].votes += inc_votes;
-        if (articleRows[0].votes < 0) articleRows[0].votes = 0;
-        return articleRows[0];
-      }
+    .then((articleRows) => {
+      if (!articleRows.length) { return Promise.reject({ status: 404, msg: 'Article Not Found' }) }
+      return articleRows[0]
     })
-    .then(incrementedArticle => {
-      return connection('articles')
-        .where('article_id', '=', article_id)
-        .update(incrementedArticle)
-        .returning('*')
-        .then(updatedArticle => {
-          return updatedArticle[0];
-        });
-    });
 };
 
 const selectCommentsByArticle = (
@@ -117,5 +134,5 @@ module.exports = {
   selectArticleById,
   updateArticle,
   selectCommentsByArticle,
-  insertCommentByArticle
+  insertCommentByArticle,
 };

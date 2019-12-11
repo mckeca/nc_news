@@ -6,7 +6,7 @@ const {
 exports.patchCommentById = (req, res, next) => {
   updateCommentById(req.body, req.params.comment_id)
     .then(comment => {
-      res.status(202).send({ comment });
+      res.status(200).send({ comment });
     })
     .catch(err => {
       next(err);

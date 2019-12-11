@@ -7,6 +7,7 @@ exports.badMethod = (req, res, next) => {
 };
 
 exports.customErrHandler = (err, req, res, next) => {
+  console.log(err)
   if (err.status) {
     res.status(err.status).send({ msg: err.msg });
   } else {
@@ -19,7 +20,7 @@ exports.psqlErrors = (err, req, res, next) => {
   const errRef = {
     '22P02': [400, 'Bad Request - Invalid Data Type'],
     23502: [400, 'Bad Request - Violating Not Null Constraint'],
-    42703: [404, 'Column Not Found'],
+    42703: [400, 'Bad Request - Cannot Sort By Non Existant Column'],
     23503: [404, 'Article Not Found']
   };
   if (!Object.keys(err).length) {
