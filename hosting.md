@@ -70,7 +70,7 @@ If you are in your app's directory, and the database is correctly linked as an a
 At the top of your `knexfile.js`, add the following line of code:
 
 ```js
-
+const { DB_URL } = process.env;
 ```
 
 Then add a `production` key to the `customConfigs` object:
