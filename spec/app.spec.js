@@ -11,7 +11,7 @@ describe('/api', () => {
   beforeEach(() => connection.seed.run());
   after(() => connection.destroy());
   it('ERROR 405: sends a Method Not Allowed error to any unhandled endpoints', () => {
-    const methods = ['get', 'patch', 'post', 'put', 'delete'];
+    const methods = ['patch', 'post', 'put', 'delete'];
     const promises = [];
     methods.forEach(method => {
       promises.push(request(app)[method]('/api'));
@@ -23,8 +23,10 @@ describe('/api', () => {
       });
     });
   });
-  it.only('GET 200: serves a json file detailing all available endpoints', () => {
-    return request(app).get('/api').expect(200)
+  it('GET 200: serves a json file detailing all available endpoints', () => {
+    return request(app)
+      .get('/api')
+      .expect(200);
   });
   describe('/api/topics', () => {
     it('ERROR 405: sends a Method Not Allowed error to any unhandled endpoints', () => {
@@ -54,7 +56,7 @@ describe('/api', () => {
   });
   describe('/api/users', () => {
     it('ERROR 405: sends a Method Not Allowed error to any unhandled endpoints', () => {
-      const methods = ['get', 'patch', 'post', 'put', 'delete'];
+      const methods = ['patch', 'post', 'put', 'delete'];
       const promises = [];
       methods.forEach(method => {
         promises.push(request(app)[method]('/api/users'));
@@ -65,6 +67,18 @@ describe('/api', () => {
           expect(response.status).to.equal(405);
         });
       });
+    });
+    it('GET: 200: serves an array of all users, excluding their names', () => {
+      return request(app)
+        .get('/api/users')
+        .expect(200)
+        .then(response => {
+          expect(response.body.users).to.be.an('array');
+          expect(response.body.users.length).to.equal(4);
+          response.body.users.forEach(user => {
+            expect(user).to.have.all.keys('username', 'avatar_url');
+          });
+        });
     });
     describe('/:username', () => {
       it('ERROR 405: sends a Method Not Allowed error to any unhandled endpoints', () => {
@@ -169,7 +183,19 @@ describe('/api', () => {
           });
         });
     });
-    it('ERROR 404: returns a Not Found error when attempting to query a non existant topic', () => {
+    it('GET 200: can chain multiple queries', () => {
+      return request(app)
+        .get('/api/articles/?topic=mitch&author=butter_bridge')
+        .expect(200)
+        .then(response => {
+          expect(response.body.articles.length).to.equal(3);
+          response.body.articles.forEach(article => {
+            expect(article.author).to.equal('butter_bridge');
+            expect(article.topic).to.equal('mitch');
+          });
+        });
+    });
+    it('ERROR 404: returns a Not Found error when attempting to query a non existent topic', () => {
       return request(app)
         .get('/api/articles?topic=nonsense')
         .expect(404)
@@ -177,20 +203,22 @@ describe('/api', () => {
           expect(response.body.msg).to.equal('Topic Not Found');
         });
     });
-    it('ERROR 404: returns a Not Found error when attempting to query a non existant author', () => {
+    it('ERROR 404: returns a Not Found error when attempting to query a non existent author', () => {
       return request(app)
         .get('/api/articles?author=more_nonsense')
         .expect(404)
         .then(response => {
-          expect(response.body.msg).to.equal('Author Not Found');
+          expect(response.body.msg).to.equal('User Not Found');
         });
     });
-    it('ERROR 400: returns a Bad Request error when attempting to sort by a non existant column', () => {
+    it('ERROR 400: returns a Bad Request error when attempting to sort by a non existent column', () => {
       return request(app)
         .get('/api/articles?sort_by=even_more_nonsense')
         .expect(400)
         .then(response => {
-          expect(response.body.msg).to.equal('Bad Request - Cannot Sort By Non Existant Column');
+          expect(response.body.msg).to.equal(
+            'Bad Request - Cannot Sort By Non Existent Column'
+          );
         });
     });
   });
@@ -239,9 +267,7 @@ describe('/api', () => {
         .get('/api/articles/banana')
         .expect(400)
         .then(response => {
-          expect(response.body.msg).to.equal(
-            'Bad Request - Invalid Data Type'
-          );
+          expect(response.body.msg).to.equal('Bad Request - Invalid Data Type');
         });
     });
     it('PATCH 200: returns a 200 accepted code and an objected containing the patched article', () => {
@@ -250,7 +276,6 @@ describe('/api', () => {
         .send({ inc_votes: 1 })
         .expect(200)
         .then(response => {
-          console.log(response.body)
           expect(response.body.article.votes).to.equal(101);
           expect(response.body.article).to.have.keys(
             'article_id',
@@ -269,9 +294,7 @@ describe('/api', () => {
         .send({ banana: 1 })
         .expect(200)
         .then(response => {
-          expect(response.body.article.votes).to.equal(
-            100
-          );
+          expect(response.body.article.votes).to.equal(100);
         });
     });
     it('PATCH 200: when passed an empty body, returns the unchanged article object', () => {
@@ -280,9 +303,7 @@ describe('/api', () => {
         .send({})
         .expect(200)
         .then(response => {
-          expect(response.body.article.votes).to.equal(
-            100
-          );
+          expect(response.body.article.votes).to.equal(100);
         });
     });
     it('ERROR 404: returns a not found error when passed an article id that does not exist', () => {
@@ -300,9 +321,7 @@ describe('/api', () => {
         .send({ inc_votes: 1 })
         .expect(400)
         .then(response => {
-          expect(response.body.msg).to.equal(
-            'Bad Request - Invalid Data Type'
-          );
+          expect(response.body.msg).to.equal('Bad Request - Invalid Data Type');
         });
     });
     it('ERROR 400: returns a Bad Request error when passed an invalid data value for specified column', () => {
@@ -311,9 +330,7 @@ describe('/api', () => {
         .send({ inc_votes: 'banana' })
         .expect(400)
         .then(response => {
-          expect(response.body.msg).to.equal(
-            'Bad Request - Invalid Data Type'
-          );
+          expect(response.body.msg).to.equal('Bad Request - Invalid Data Type');
         });
     });
     describe('api/articles/:article_id/comments', () => {
@@ -540,7 +557,7 @@ describe('/api', () => {
             expect(response.body.comment.votes).to.equal(16);
           });
       });
-      it('ERROR 404: returns a Not Found error when passed a non existant comment_id', () => {
+      it('ERROR 404: returns a Not Found error when passed a non existent comment_id', () => {
         return request(app)
           .patch('/api/comments/999')
           .send({ inc_votes: 1 })
@@ -555,7 +572,9 @@ describe('/api', () => {
           .send({ inc_votes: 1 })
           .expect(400)
           .then(response => {
-            expect(response.body.msg).to.equal('Bad Request - Invalid Data Type');
+            expect(response.body.msg).to.equal(
+              'Bad Request - Invalid Data Type'
+            );
           });
       });
       it('ERROR 400: returns a Bad Request error when passed an invalid data value for specified column', () => {
@@ -564,15 +583,17 @@ describe('/api', () => {
           .send({ inc_votes: 'banana' })
           .expect(400)
           .then(response => {
-            expect(response.body.msg).to.equal('Bad Request - Invalid Data Type');
+            expect(response.body.msg).to.equal(
+              'Bad Request - Invalid Data Type'
+            );
           });
       });
-      it('DELETE 204: returns a status code of 204 but no body on succesful delete', () => {
+      it('DELETE 204: returns a status code of 204 but no body on successful delete', () => {
         return request(app)
           .delete('/api/comments/1')
           .expect(204);
       });
-      it('ERROR 404: returns a Not Found error when passed a non existant comment id', () => {
+      it('ERROR 404: returns a Not Found error when passed a non existent comment id', () => {
         return request(app)
           .delete('/api/comments/999')
           .expect(404)

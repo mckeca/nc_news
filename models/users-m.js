@@ -12,4 +12,15 @@ const selectUser = username => {
     });
 };
 
-module.exports = selectUser;
+const selectAllUsers = () => {
+  return connection('users')
+    .select('*')
+    .returning('*')
+    .then(users => {
+      return users.map(({ name, ...otherKeys }) => {
+        return { ...otherKeys };
+      });
+    });
+};
+
+module.exports = { selectUser, selectAllUsers };

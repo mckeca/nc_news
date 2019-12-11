@@ -1,9 +1,8 @@
 exports.up = function (knex) {
-  console.log('creating articles table');
   return knex.schema.createTable('articles', function (table) {
     table.increments('article_id').primary();
     table.string('title');
-    table.text('body');
+    table.text('body').notNullable();
     table.integer('votes').defaultTo(0);
     table.string('topic').references('topics.slug')
       .onDelete('CASCADE');
@@ -14,6 +13,5 @@ exports.up = function (knex) {
 };
 
 exports.down = function (knex) {
-  console.log('dropping articles table');
   return knex.schema.dropTable('articles');
 };

@@ -27,9 +27,7 @@ exports.patchArticle = (req, res, next) => {
     .then(article => {
       res.status(200).send({ article });
     })
-    .catch(err => {
-      next(err);
-    });
+    .catch(err => next(err));
 };
 
 exports.getCommentsByArticle = (req, res, next) => {
@@ -41,9 +39,7 @@ exports.getCommentsByArticle = (req, res, next) => {
     .then(comments => {
       res.status(200).send({ comments });
     })
-    .catch(err => {
-      next(err);
-    });
+    .catch(err => next(err));
 };
 
 exports.postCommentToArticle = (req, res, next) => {
@@ -51,7 +47,5 @@ exports.postCommentToArticle = (req, res, next) => {
     .then(comment => {
       res.status(201).send({ comment });
     })
-    .catch(err => {
-      next(err);
-    });
+    .catch(err => next(err));
 };

@@ -1,34 +1,22 @@
 const connection = require('../db/connection');
 
-const checkTopic = (topic, rows) => {
+const checkValue = (value, column, table, rows) => {
   return connection
-    .select('slug')
-    .from('topics')
-    .where('slug', '=', topic)
+    .select('*')
+    .from(`${table}`)
+    .where(`${column}`, '=', `${value}`)
     .returning('*')
-    .then(topics => {
-      if (!topics.length) {
-        return Promise.reject({ status: 404, msg: 'Topic Not Found' });
-      } else {
-        return rows
-      }
-    });
-};
-
-const checkAuthor = (author, rows) => {
-  return connection
-    .select('username')
-    .from('users')
-    .where('username', '=', author)
-    .returning('*')
-    .then(users => {
-      if (!users.length) {
-        return Promise.reject({ status: 404, msg: 'Author Not Found' });
+    .then(returnedRows => {
+      if (!returnedRows.length) {
+        const errString = `${table}`
+          .replace(`${table}`[0], `${table}`[0].toUpperCase())
+          .slice(0, table.length - 1)
+        return Promise.reject({ status: 404, msg: `${errString} Not Found` })
       } else {
         return rows;
       }
-    });
-};
+    })
+}
 
 const selectArticles = ({
   sort_by = 'created_at',
@@ -36,33 +24,36 @@ const selectArticles = ({
   ...otherKeys
 }) => {
   return connection
-    .select('articles.*')
+    .select('articles.article_id',
+      'title',
+      'articles.votes',
+      'topic',
+      'articles.author',
+      'articles.created_at')
     .from('articles')
     .leftJoin('comments', 'articles.article_id', 'comments.article_id')
     .count({ comment_count: 'comments.article_id' })
     .groupBy('articles.article_id')
     .orderBy(sort_by, order)
+    .returning('*')
     .modify(query => {
       if (otherKeys['author']) {
-        query.where('articles.author', '=', `${otherKeys['author']}`)
+        query.where('articles.author', '=', `${otherKeys.author}`)
       }
     })
     .modify(query => {
       if (otherKeys['topic']) {
-        query.where('articles.topic', '=', `${otherKeys['topic']}`);
+        query.where('articles.topic', '=', `${otherKeys.topic}`);
       }
     })
-    .returning('*')
     .then(rows => {
       if (!rows.length && otherKeys['author']) {
-        return checkAuthor(otherKeys['author'], rows)
+        return checkValue(`${otherKeys.author}`, 'username', 'users', rows)
       }
       if (!rows.length && otherKeys['topic']) {
-        return checkTopic(otherKeys['topic'], rows)
+        return checkValue(`${otherKeys.topic}`, 'slug', 'topics', rows)
       }
-      return rows.map(({ body, ...otherKeys }) => {
-        return { ...otherKeys };
-      });
+      return rows
     });
 };
 

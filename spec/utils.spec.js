@@ -9,7 +9,7 @@ describe('formatDates', () => {
   it('should return an empty array when passed an empty array', () => {
     expect(formatDates([])).to.eql([]);
   });
-  it('when passed an arary containing one onject, should replace a Unix time stamp with a JS date object on the same key', () => {
+  it('when passed an array containing one object, should replace a Unix time stamp with a JS date object on the same key', () => {
     const input = [{ name: 'Cal', age: 25, created_at: Date.now() }];
     const actual = formatDates(input);
     expect(typeof actual[0].created_at).to.equal('object');
@@ -46,7 +46,7 @@ describe('makeRefObj', () => {
   it('when passed an empty array should return an empty object', () => {
     expect(makeRefObj([])).to.eql({});
   });
-  it('when passed an array containing one onject, returns a new object with a key value pair relating to the title and article_id values of passed object', () => {
+  it('when passed an array containing one object, returns a new object with a key value pair relating to the title and article_id values of passed object', () => {
     const input = [{ title: 'Gone with the wind', article_id: 1 }];
     const actual = makeRefObj(input);
     expect(actual).to.eql({ 'Gone with the wind': 1 });

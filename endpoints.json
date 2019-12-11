@@ -6,7 +6,12 @@
     "description": "serves an array of all topics",
     "queries": [],
     "exampleResponse": {
-      "topics": [{ "slug": "football", "description": "Footie!" }]
+      "topics": [
+        {
+          "slug": "football",
+          "description": "Footie!"
+        }
+      ]
     }
   },
   "GET /api/users/:username": {
@@ -22,7 +27,12 @@
   },
   "GET /api/articles": {
     "description": "serves an array of all topics",
-    "queries": ["author", "topic", "sort_by", "order"],
+    "queries": [
+      "author",
+      "topic",
+      "sort_by",
+      "order"
+    ],
     "exampleResponse": {
       "articles": [
         {
@@ -36,7 +46,7 @@
     }
   },
   "GET /api/articles/:article_id": {
-    "description": "serves a single article object based on the parametric endpont passed in",
+    "description": "serves a single article object based on the parametric endpoint passed in",
     "queries": [],
     "exampleResponse": {
       "article": {
@@ -68,8 +78,11 @@
     }
   },
   "GET /api/articles/:article_id/comments": {
-    "description": "serves an array of all the comments attaached to a particular article",
-    "queries": ["sort_by", "order"],
+    "description": "serves an array of all the comments attached to a particular article",
+    "queries": [
+      "sort_by",
+      "order"
+    ],
     "exampleResponse": {
       "comments": [
         {
@@ -103,7 +116,7 @@
     }
   },
   "PATCH /api/comments/:comment_id": {
-    "description": "updates the amount of votes on a particluar comment, then returns the full updated comment object",
+    "description": "updates the amount of votes on a particular comment, then returns the full updated comment object",
     "queries": [],
     "exampleResponse": {
       "comment": {

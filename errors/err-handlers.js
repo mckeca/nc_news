@@ -7,7 +7,6 @@ exports.badMethod = (req, res, next) => {
 };
 
 exports.customErrHandler = (err, req, res, next) => {
-  console.log(err)
   if (err.status) {
     res.status(err.status).send({ msg: err.msg });
   } else {
@@ -16,16 +15,15 @@ exports.customErrHandler = (err, req, res, next) => {
 };
 
 exports.psqlErrors = (err, req, res, next) => {
-  console.log(err);
   const errRef = {
-    '22P02': [400, 'Bad Request - Invalid Data Type'],
-    23502: [400, 'Bad Request - Violating Not Null Constraint'],
-    42703: [400, 'Bad Request - Cannot Sort By Non Existant Column'],
-    23503: [404, 'Article Not Found']
+    '22P02': { status: 400, msg: 'Bad Request - Invalid Data Type' },
+    23502: { status: 400, msg: 'Bad Request - Violating Not Null Constraint' },
+    42703: { status: 400, msg: 'Bad Request - Cannot Sort By Non Existent Column' },
+    23503: { status: 404, msg: 'Article Not Found' }
   };
   if (!Object.keys(err).length) {
     res.status(400).send({ msg: 'Bad Request - Empty Body' });
   } else {
-    res.status(errRef[err.code][0]).send({ msg: errRef[err.code][1] });
+    res.status(errRef[err.code].status).send({ msg: errRef[err.code].msg });
   }
 };
