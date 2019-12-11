@@ -23,6 +23,9 @@ describe('/api', () => {
       });
     });
   });
+  it.only('GET 200: serves a json file detailing all available endpoints', () => {
+    return request(app).get('/api').expect(200)
+  });
   describe('/api/topics', () => {
     it('ERROR 405: sends a Method Not Allowed error to any unhandled endpoints', () => {
       const methods = ['patch', 'post', 'put', 'delete'];

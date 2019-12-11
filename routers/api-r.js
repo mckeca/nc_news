@@ -3,12 +3,12 @@ const topicsRouter = require('./topics-r');
 const articlesRouter = require('./articles-r');
 const usersRouter = require('./users-r');
 const commentsRouter = require('./comments-r');
-const getAllEndpoints = require('../controllers/api-c');
+const { getAllEndpoints } = require('../controllers/api-c');
 const { badMethod } = require('../errors/err-handlers');
 
 apiRouter
   .route('/')
-  // .get(getAllEndpoints)
+  .get(getAllEndpoints)
   .all(badMethod);
 
 apiRouter.use('/topics', topicsRouter);
