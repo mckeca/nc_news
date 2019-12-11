@@ -1,5 +1,6 @@
 exports.getAllEndpoints = (req, res, next) => {
-    res.sendFile('/home/callum/northcoders/back-end/be-nc-news/endpoints.json', err => {
-        next(err)
-    })
+  res.sendFile('/endpoints.json', { root: __dirname }, err => {
+    console.log(err);
+    next(err);
+  });
 };

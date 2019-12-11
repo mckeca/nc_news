@@ -23,7 +23,7 @@ describe('/api', () => {
       });
     });
   });
-  it('GET 200: serves a json file detailing all available endpoints', () => {
+  it.only('GET 200: serves a json file detailing all available endpoints', () => {
     return request(app)
       .get('/api')
       .expect(200);
