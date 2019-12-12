@@ -115,7 +115,7 @@ describe('/wrongPath', () => {
           });
         });
       });
-      it('GET: 200: serves an array of all users, excluding their names', () => {
+      it('GET 200: serves an array of all users, excluding their names', () => {
         return request(app)
           .get('/api/users')
           .expect(200)
