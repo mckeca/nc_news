@@ -5,7 +5,6 @@ const checkValue = (value, column, table, rows) => {
     .select('*')
     .from(`${table}`)
     .where(`${column}`, '=', `${value}`)
-    .returning('*')
     .then(returnedRows => {
       if (!returnedRows.length) {
         const errString = `${table}`
@@ -21,6 +20,8 @@ const checkValue = (value, column, table, rows) => {
 const selectArticles = ({
   sort_by = 'created_at',
   order = 'desc',
+  limit = 10,
+  page = 1,
   ...otherKeys
 }) => {
   return connection
@@ -33,11 +34,12 @@ const selectArticles = ({
       'articles.created_at'
     )
     .from('articles')
+    .limit(limit)
+    .offset((page - 1) * limit)
     .leftJoin('comments', 'articles.article_id', 'comments.article_id')
     .count({ comment_count: 'comments.article_id' })
     .groupBy('articles.article_id')
     .orderBy(sort_by, order)
-    .returning('*')
     .modify(query => {
       if (otherKeys['author']) {
         query.where('articles.author', '=', `${otherKeys.author}`);
@@ -53,7 +55,12 @@ const selectArticles = ({
       if (!rows.length && otherKeys['topic']) {
         return checkValue(`${otherKeys.topic}`, 'slug', 'topics', rows);
       }
-      return rows;
+      const totalRows = connection('articles').select('article_id');
+      return Promise.all([totalRows, rows]);
+    })
+    .then(([totalRows, articles]) => {
+      const total_count = totalRows.length;
+      return { articles, total_count };
     });
 };
 
@@ -86,14 +93,35 @@ const updateArticle = (article_id, { inc_votes = 0 }) => {
     });
 };
 
+const insertArticle = article => {
+  return connection('articles')
+    .insert(article)
+    .returning('*')
+    .then(articleRows => {
+      return articleRows[0];
+    });
+};
+
+const removeArticle = article_id => {
+  return connection('articles')
+    .where('article_id', '=', article_id)
+    .del()
+    .returning('*')
+    .then(deletedArticle => {
+      if (!deletedArticle.length)
+        return Promise.reject({ status: 404, msg: 'Article Not Found' });
+    });
+};
+
 const selectCommentsByArticle = (
   article_id,
-  sort_by = 'created_at',
-  order = 'desc'
+  { sort_by = 'created_at', order = 'desc', limit = 0, page = 1 }
 ) => {
   return connection('comments')
     .where('article_id', '=', article_id)
     .orderBy(sort_by, order)
+    .limit(limit)
+    .offset((page - 1) * limit)
     .returning('*')
     .then(commentRows => {
       const checkArticle = connection('articles')
@@ -127,5 +155,7 @@ module.exports = {
   selectArticleById,
   updateArticle,
   selectCommentsByArticle,
-  insertCommentByArticle
+  insertCommentByArticle,
+  insertArticle,
+  removeArticle
 };

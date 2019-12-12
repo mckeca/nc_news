@@ -12,6 +12,15 @@ const selectUser = username => {
     });
 };
 
+const insertUser = user => {
+  return connection('users')
+    .insert(user)
+    .returning('*')
+    .then(userRows => {
+      return userRows[0];
+    });
+};
+
 const selectAllUsers = () => {
   return connection('users')
     .select('*')
@@ -23,4 +32,4 @@ const selectAllUsers = () => {
     });
 };
 
-module.exports = { selectUser, selectAllUsers };
+module.exports = { selectUser, insertUser, selectAllUsers };

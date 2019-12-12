@@ -1,6 +1,5 @@
+const endpoints = require('../endpoints.json');
+
 exports.getAllEndpoints = (req, res, next) => {
-  res.sendFile('/endpoints.json', { root: __dirname }, err => {
-    console.log(err);
-    next(err);
-  });
+  res.status(200).send({ endpoints });
 };

@@ -18,7 +18,10 @@ exports.psqlErrors = (err, req, res, next) => {
   const errRef = {
     '22P02': { status: 400, msg: 'Bad Request - Invalid Data Type' },
     23502: { status: 400, msg: 'Bad Request - Violating Not Null Constraint' },
-    42703: { status: 400, msg: 'Bad Request - Cannot Sort By Non Existent Column' },
+    42703: {
+      status: 400,
+      msg: 'Bad Request - Cannot Sort By Non Existent Column'
+    },
     23503: { status: 404, msg: 'Article Not Found' }
   };
   if (!Object.keys(err).length) {

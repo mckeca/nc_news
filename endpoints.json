@@ -14,6 +14,43 @@
       ]
     }
   },
+  "POST /api/topics": {
+    "description": "add a new topic to the database",
+    "queries": [],
+    "exampleBody": { "description": "test topic", "slug": "slugs are gross" },
+    "exampleResponse": {
+      "topic": { "description": "test topic", "slug": "slugs are gross" }
+    }
+  },
+  "GET /api/users": {
+    "description": "serves an array of all users",
+    "queries": [],
+    "exampleResponse": {
+      "users": [
+        {
+          "username": "butter_bridge",
+          "avatar_url": "https://www.healthytherapies.com/wp-content/uploads/2016/06/Lime3.jpg",
+          "name": "jonny"
+        }
+      ]
+    }
+  },
+  "POST /api/users": {
+    "description": "add a new user to the database",
+    "queries": [],
+    "exampleBody": {
+      "username": "mckeca",
+      "name": "Cal",
+      "avatar_url": "www.google.com"
+    },
+    "exampleResponse": {
+      "user": {
+        "username": "mckeca",
+        "name": "Cal",
+        "avatar_url": "www.google.com"
+      }
+    }
+  },
   "GET /api/users/:username": {
     "description": "serves a single user object based on the parametric endpoint passed in",
     "queries": [],
@@ -40,6 +77,27 @@
       ]
     }
   },
+  "POST /api/articles": {
+    "description": "add a new article to the database",
+    "queries": [],
+    "exampleBody": {
+      "title": "testing testing",
+      "topic": "mitch",
+      "author": "butter_bridge",
+      "body": "not great, i eat greggs every day"
+    },
+    "exampleResponse": {
+      "article": {
+        "article_id": 13,
+        "created_at": "2019-12-12T14:53:36.917Z",
+        "votes": 0,
+        "title": "testing testing",
+        "topic": "mitch",
+        "author": "butter_bridge",
+        "body": "not great, i eat greggs every day"
+      }
+    }
+  },
   "GET /api/articles/:article_id": {
     "description": "serves a single article object based on the parametric endpoint passed in",
     "queries": [],
@@ -59,7 +117,9 @@
   "PATCH /api/articles/:article_id": {
     "description": "updates the amount of votes on a single article and returns the full updated article object",
     "queries": [],
-    "exampleBody": { "inc_votes": 1 },
+    "exampleBody": {
+      "inc_votes": 1
+    },
     "exampleResponse": {
       "article": {
         "article_id": 1,
@@ -72,6 +132,11 @@
         "comment_count": 2
       }
     }
+  },
+  "DELETE /api/articles/:article_id": {
+    "description": "removes an article from the database",
+    "queries": [],
+    "exampleResponse": "None"
   },
   "GET /api/articles/:article_id/comments": {
     "description": "serves an array of all the comments attached to a particular article",
@@ -115,7 +180,9 @@
   "PATCH /api/comments/:comment_id": {
     "description": "updates the amount of votes on a particular comment, then returns the full updated comment object",
     "queries": [],
-    "exampleBody": { "inc_votes": 1 },
+    "exampleBody": {
+      "inc_votes": 1
+    },
     "exampleResponse": {
       "comment": {
         "comment_id": 13,

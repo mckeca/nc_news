@@ -3,13 +3,21 @@ const {
   selectArticleById,
   updateArticle,
   selectCommentsByArticle,
-  insertCommentByArticle
+  insertCommentByArticle,
+  insertArticle,
+  removeArticle
 } = require('../models/articles-m');
 
 exports.getArticles = (req, res, next) => {
+  if (!/\d+/.test(req.query.limit)) {
+    req.query.limit = 10;
+  }
+  if (!/\d+/.test(req.query.page)) {
+    req.query.page = 1;
+  }
   selectArticles(req.query)
-    .then(articles => {
-      res.status(200).send({ articles });
+    .then(page => {
+      res.status(200).send(page);
     })
     .catch(err => next(err));
 };
@@ -30,12 +38,31 @@ exports.patchArticle = (req, res, next) => {
     .catch(err => next(err));
 };
 
+exports.postArticle = (req, res, next) => {
+  insertArticle(req.body)
+    .then(article => {
+      console.log(article);
+      res.status(201).send({ article });
+    })
+    .catch(err => next(err));
+};
+
+exports.deleteArticle = (req, res, next) => {
+  removeArticle(req.params.article_id)
+    .then(response => {
+      res.sendStatus(204);
+    })
+    .catch(err => next(err));
+};
+
 exports.getCommentsByArticle = (req, res, next) => {
-  selectCommentsByArticle(
-    req.params.article_id,
-    req.query.sort_by,
-    req.query.order
-  )
+  if (!/\d+/.test(req.query.limit)) {
+    req.query.limit = 10;
+  }
+  if (!/\d+/.test(req.query.page)) {
+    req.query.page = 1;
+  }
+  selectCommentsByArticle(req.params.article_id, req.query)
     .then(comments => {
       res.status(200).send({ comments });
     })

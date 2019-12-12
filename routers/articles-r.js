@@ -4,19 +4,23 @@ const {
   getArticleById,
   patchArticle,
   getCommentsByArticle,
-  postCommentToArticle
+  postCommentToArticle,
+  postArticle,
+  deleteArticle
 } = require('../controllers/articles-c');
 const { badMethod } = require('../errors/err-handlers');
 
 articlesRouter
   .route('/')
   .get(getArticles)
+  .post(postArticle)
   .all(badMethod);
 
 articlesRouter
   .route('/:article_id')
   .get(getArticleById)
   .patch(patchArticle)
+  .delete(deleteArticle)
   .all(badMethod);
 
 articlesRouter

@@ -12,7 +12,7 @@ app.use(express.json());
 
 app.use('/api', apiRouter);
 
-// app.use('/*', badPath);
+app.all('/*', badPath);
 
 app.use(customErrHandler);
 

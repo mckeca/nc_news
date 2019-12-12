@@ -1,11 +1,8 @@
 const commentsRouter = require('express').Router();
 const { badMethod } = require('../errors/err-handlers');
-const {
-  patchComment,
-  deleteComment
-} = require('../controllers/comments-c');
+const { patchComment, deleteComment } = require('../controllers/comments-c');
 
-commentsRouter.route('/').all(badMethod)
+commentsRouter.route('/').all(badMethod);
 
 commentsRouter
   .route('/:comment_id')
