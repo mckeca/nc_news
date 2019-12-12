@@ -93,9 +93,10 @@ const updateArticle = (article_id, { inc_votes = 0 }) => {
     });
 };
 
-const insertArticle = article => {
+const insertArticle = ({ title, topic, author, body }) => {
+  const cleanArticle = { title, topic, author, body };
   return connection('articles')
-    .insert(article)
+    .insert(cleanArticle)
     .returning('*')
     .then(articleRows => {
       return articleRows[0];
@@ -141,9 +142,9 @@ const selectCommentsByArticle = (
 };
 
 const insertCommentByArticle = ({ username, body }, article_id) => {
-  const newComment = { body: body, author: username, article_id: article_id };
+  const cleanComment = { body: body, author: username, article_id: article_id };
   return connection('comments')
-    .insert(newComment)
+    .insert(cleanComment)
     .returning('*')
     .then(commentRows => {
       return commentRows[0];

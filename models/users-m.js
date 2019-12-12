@@ -12,9 +12,10 @@ const selectUser = username => {
     });
 };
 
-const insertUser = user => {
+const insertUser = ({ username, name, avatar_url }) => {
+  const cleanUser = { username, name, avatar_url };
   return connection('users')
-    .insert(user)
+    .insert(cleanUser)
     .returning('*')
     .then(userRows => {
       return userRows[0];

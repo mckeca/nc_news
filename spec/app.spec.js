@@ -24,7 +24,7 @@ describe('/wrongPath', () => {
     });
   });
   describe('/api', () => {
-    it('ERROR 405: sends a Method Not Allowed error to any unhandled endpoints', () => {
+    it('ERROR 405: sends a Method Not Allowed error to any unhandled method requests', () => {
       const methods = ['patch', 'post', 'put', 'delete'];
       const promises = [];
       methods.forEach(method => {
@@ -43,7 +43,7 @@ describe('/wrongPath', () => {
         .expect(200);
     });
     describe('/api/topics', () => {
-      it('ERROR 405: sends a Method Not Allowed error to any unhandled endpoints', () => {
+      it('ERROR 405: sends a Method Not Allowed error to any unhandled method requests', () => {
         const methods = ['patch', 'put', 'delete'];
         const promises = [];
         methods.forEach(method => {
@@ -70,7 +70,20 @@ describe('/wrongPath', () => {
       it('POST 201: inserts a new topic into the database when passed a valid body, returning the new topic', () => {
         return request(app)
           .post('/api/topics')
-          .send({ description: 'testopic', slug: 'slugs are gross' })
+          .send({ description: 'test topic', slug: 'slugs are gross' })
+          .expect(201)
+          .then(response => {
+            expect(response.body.topic).to.have.all.keys('slug', 'description');
+          });
+      });
+      it('POST 201: ignores any superfluous keys, inserting the topic as normal', () => {
+        return request(app)
+          .post('/api/topics')
+          .send({
+            description: 'test topic',
+            slug: 'slugs are gross',
+            extra: 'read all about it'
+          })
           .expect(201)
           .then(response => {
             expect(response.body.topic).to.have.all.keys('slug', 'description');
@@ -102,7 +115,7 @@ describe('/wrongPath', () => {
       });
     });
     describe('/api/users', () => {
-      it('ERROR 405: sends a Method Not Allowed error to any unhandled endpoints', () => {
+      it('ERROR 405: sends a Method Not Allowed error to any unhandled method requests', () => {
         const methods = ['patch', 'put', 'delete'];
         const promises = [];
         methods.forEach(method => {
@@ -144,6 +157,24 @@ describe('/wrongPath', () => {
             );
           });
       });
+      it('POST 201: ignores any superfluous keys, inserting the user as normal', () => {
+        return request(app)
+          .post('/api/users')
+          .send({
+            username: 'mckeca',
+            name: 'Cal',
+            avatar_url: 'www.google.com',
+            very: 'unnecessary'
+          })
+          .expect(201)
+          .then(response => {
+            expect(response.body.user).to.have.all.keys(
+              'username',
+              'name',
+              'avatar_url'
+            );
+          });
+      });
       it('ERROR 400: returns a Bad Request when body omits an essential key', () => {
         return request(app)
           .post('/api/users')
@@ -169,7 +200,7 @@ describe('/wrongPath', () => {
           });
       });
       describe('/:username', () => {
-        it('ERROR 405: sends a Method Not Allowed error to any unhandled endpoints', () => {
+        it('ERROR 405: sends a Method Not Allowed error to any unhandled method requests', () => {
           const methods = ['patch', 'post', 'put', 'delete'];
           const promises = [];
           methods.forEach(method => {
@@ -206,7 +237,7 @@ describe('/wrongPath', () => {
       });
     });
     describe('/api/articles', () => {
-      it('ERROR 405: sends a Method Not Allowed error to any unhandled endpoints', () => {
+      it('ERROR 405: sends a Method Not Allowed error to any unhandled method requests', () => {
         const methods = ['patch', 'put', 'delete'];
         const promises = [];
         methods.forEach(method => {
@@ -367,6 +398,29 @@ describe('/wrongPath', () => {
             );
           });
       });
+      it('POST 201: ignores superfluous keys, inserting the article as normal', () => {
+        return request(app)
+          .post('/api/articles')
+          .send({
+            title: 'testing testing',
+            topic: 'mitch',
+            author: 'butter_bridge',
+            body: 'not great, i eat greggs every day',
+            please: 'dont break'
+          })
+          .expect(201)
+          .then(response => {
+            expect(response.body.article).to.have.all.keys(
+              'title',
+              'topic',
+              'author',
+              'body',
+              'article_id',
+              'created_at',
+              'votes'
+            );
+          });
+      });
       it('ERROR 400: returns a Bad Request when body omits an essential key', () => {
         return request(app)
           .post('/api/articles')
@@ -394,7 +448,7 @@ describe('/wrongPath', () => {
           });
       });
       describe('/api/articles/:article_id', () => {
-        it('ERROR 405: sends a Method Not Allowed error to any unhandled endpoints', () => {
+        it('ERROR 405: sends a Method Not Allowed error to any unhandled method requests', () => {
           const methods = ['post', 'put'];
           const promises = [];
           methods.forEach(method => {
@@ -524,7 +578,7 @@ describe('/wrongPath', () => {
             });
         });
         describe('api/articles/:article_id/comments', () => {
-          it('ERROR 405: sends a Method Not Allowed error to any unhandled endpoints', () => {
+          it('ERROR 405: sends a Method Not Allowed error to any unhandled method requests', () => {
             const methods = ['patch', 'put', 'delete'];
             const promises = [];
             methods.forEach(method => {
@@ -725,7 +779,7 @@ describe('/wrongPath', () => {
       });
     });
     describe('/api/comments', () => {
-      it('ERROR 405: sends a Method Not Allowed error to any unhandled endpoints', () => {
+      it('ERROR 405: sends a Method Not Allowed error to any unhandled method requests', () => {
         const methods = ['get', 'patch', 'post', 'put', 'delete'];
         const promises = [];
         methods.forEach(method => {
@@ -739,7 +793,7 @@ describe('/wrongPath', () => {
         });
       });
       describe('/api/comments/:comment_id', () => {
-        it('ERROR 405: sends a Method Not Allowed error to any unhandled endpoints', () => {
+        it('ERROR 405: sends a Method Not Allowed error to any unhandled method requests', () => {
           const methods = ['post', 'put', 'get'];
           const promises = [];
           methods.forEach(method => {
