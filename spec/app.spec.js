@@ -406,7 +406,7 @@ describe('/wrongPath', () => {
             topic: 'mitch',
             author: 'butter_bridge',
             body: 'not great, i eat greggs every day',
-            please: 'dont break'
+            please: "don't break"
           })
           .expect(201)
           .then(response => {
@@ -701,7 +701,7 @@ describe('/wrongPath', () => {
                 expect(response.body.comment.votes).to.equal(0);
               });
           });
-          it('POST 201: ignores any erroneous column names', () => {
+          it('POST 201: ignores any superfluous keys, adding the comment as normal', () => {
             return request(app)
               .post('/api/articles/2/comments')
               .send({
