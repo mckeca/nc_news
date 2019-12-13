@@ -24,6 +24,7 @@ const selectArticles = ({
   page = 1,
   ...otherKeys
 }) => {
+
   return connection
     .select(
       'articles.article_id',
@@ -41,21 +42,32 @@ const selectArticles = ({
     .groupBy('articles.article_id')
     .orderBy(sort_by, order)
     .modify(query => {
-      if (otherKeys['author']) {
-        query.where('articles.author', '=', `${otherKeys.author}`);
+      if (otherKeys.author) {
+        query.where('articles.author', '=', otherKeys.author);
       }
-      if (otherKeys['topic']) {
-        query.where('articles.topic', '=', `${otherKeys.topic}`);
+      if (otherKeys.topic) {
+        query.where('articles.topic', '=', otherKeys.topic);
       }
     })
     .then(rows => {
-      if (!rows.length && otherKeys['author']) {
-        return checkValue(`${otherKeys.author}`, 'username', 'users', rows);
+      if (!rows.length && otherKeys.author) {
+        return checkValue(otherKeys.author, 'username', 'users', rows);
       }
-      if (!rows.length && otherKeys['topic']) {
-        return checkValue(`${otherKeys.topic}`, 'slug', 'topics', rows);
+      if (!rows.length && otherKeys.topic) {
+        return checkValue(otherKeys.topic, 'slug', 'topics', rows);
       }
-      const totalRows = connection('articles').select('article_id');
+      return rows
+    })
+    .then(rows => {
+      const totalRows = connection('articles').select('article_id')
+        .modify(query => {
+          if (otherKeys.author) {
+            query.where('articles.author', '=', otherKeys.author);
+          }
+          if (otherKeys.topic) {
+            query.where('articles.topic', '=', otherKeys.topic);
+          }
+        })
       return Promise.all([totalRows, rows]);
     })
     .then(([totalRows, articles]) => {

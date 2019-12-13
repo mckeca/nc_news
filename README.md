@@ -52,7 +52,7 @@ To install these packages you can simply run:
 npm install [package]
 ```
 
-in yor terminal, or simply:
+in your terminal, or simply:
 
 ```
 npm install

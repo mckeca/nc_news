@@ -9,10 +9,10 @@ const {
 } = require('../models/articles-m');
 
 exports.getArticles = (req, res, next) => {
-  if (!/\d+/.test(req.query.limit)) {
+  if (!/\d+/.test(req.query.limit) || req.query.limit < 1) {
     req.query.limit = 10;
   }
-  if (!/\d+/.test(req.query.page)) {
+  if (!/\d+/.test(req.query.page) || req.query.page < 1) {
     req.query.page = 1;
   }
   selectArticles(req.query)
@@ -55,10 +55,10 @@ exports.deleteArticle = (req, res, next) => {
 };
 
 exports.getCommentsByArticle = (req, res, next) => {
-  if (!/\d+/.test(req.query.limit)) {
+  if (!/\d+/.test(req.query.limit) || req.query.limit < 1) {
     req.query.limit = 10;
   }
-  if (!/\d+/.test(req.query.page)) {
+  if (!/\d+/.test(req.query.page) || req.query.page < 1) {
     req.query.page = 1;
   }
   selectCommentsByArticle(req.params.article_id, req.query)

@@ -42,6 +42,44 @@ describe('/wrongPath', () => {
         .get('/api')
         .expect(200);
     });
+    it('GET 200: can take a limit query that determines how many results to send per page', () => {
+      return request(app)
+        .get('/api?limit=5')
+        .expect(200)
+        .then(response => {
+          const endpointsArr = Object.entries(response.body.endpoints)
+          expect(endpointsArr.length).to.equal(5);
+        });
+    });
+    it('GET 200: can take a page query that determines where to offset the data returned', () => {
+      return request(app)
+        .get('/api?limit=5&page=2')
+        .expect(200)
+        .then(response => {
+          const endpointsArr = Object.entries(response.body.endpoints)
+          expect(endpointsArr.length).to.equal(5);
+          expect(endpointsArr[0][0]).to.equal('GET /api/users/:username')
+        });
+    });
+    it('GET 200: ignores limit query when passed an invalid data type', () => {
+      return request(app)
+        .get('/api?limit=whaaaaat')
+        .expect(200)
+        .then(response => {
+          const endpointsArr = Object.entries(response.body.endpoints)
+          expect(endpointsArr.length).to.equal(10);
+        });
+    });
+    it('GET 200: ignores page query when passed an invalid data type', () => {
+      return request(app)
+        .get('/api?page=nooooooo')
+        .expect(200)
+        .then(response => {
+          const endpointsArr = Object.entries(response.body.endpoints)
+          expect(endpointsArr.length).to.equal(10);
+          expect(endpointsArr[0][0]).to.equal('GET /api')
+        });
+    });
     describe('/api/topics', () => {
       it('ERROR 405: sends a Method Not Allowed error to any unhandled method requests', () => {
         const methods = ['patch', 'put', 'delete'];
@@ -199,7 +237,7 @@ describe('/wrongPath', () => {
             );
           });
       });
-      describe('/:username', () => {
+      describe('/api/users/:username', () => {
         it('ERROR 405: sends a Method Not Allowed error to any unhandled method requests', () => {
           const methods = ['patch', 'post', 'put', 'delete'];
           const promises = [];
@@ -293,6 +331,22 @@ describe('/wrongPath', () => {
             });
           });
       });
+      it('GET 200: returns an empty array for an author who exists but has no articles', () => {
+        return request(app)
+          .get('/api/articles?author=lurker')
+          .expect(200)
+          .then(response => {
+            expect(response.body.articles).to.eql([]);
+          });
+      });
+      it('GET 200: returns an empty array for a topic that exists but has no articles', () => {
+        return request(app)
+          .get('/api/articles?topic=paper')
+          .expect(200)
+          .then(response => {
+            expect(response.body.articles).to.eql([]);
+          });
+      });
       it('GET 200: can filter by topic by adding relevant query', () => {
         return request(app)
           .get('/api/articles?topic=mitch')
@@ -314,6 +368,14 @@ describe('/wrongPath', () => {
               expect(article.author).to.equal('butter_bridge');
               expect(article.topic).to.equal('mitch');
             });
+          });
+      });
+      it('GET 200: total_count should account for added queries', () => {
+        return request(app)
+          .get('/api/articles?topic=mitch&author=butter_bridge')
+          .expect(200)
+          .then(response => {
+            expect(response.body.total_count).to.equal(3);
           });
       });
       it('GET 200: can take a limit query that determines how many results to send per page', () => {
@@ -778,12 +840,27 @@ describe('/wrongPath', () => {
         });
       });
     });
-    describe('/api/comments', () => {
+  });
+  describe('/api/comments', () => {
+    it('ERROR 405: sends a Method Not Allowed error to any unhandled method requests', () => {
+      const methods = ['get', 'patch', 'post', 'put', 'delete'];
+      const promises = [];
+      methods.forEach(method => {
+        promises.push(request(app)[method]('/api/comments'));
+      });
+      return Promise.all(promises).then(responses => {
+        responses.forEach(response => {
+          expect(response.body.msg).to.equal('Method Not Allowed');
+          expect(response.status).to.equal(405);
+        });
+      });
+    });
+    describe('/api/comments/:comment_id', () => {
       it('ERROR 405: sends a Method Not Allowed error to any unhandled method requests', () => {
-        const methods = ['get', 'patch', 'post', 'put', 'delete'];
+        const methods = ['post', 'put', 'get'];
         const promises = [];
         methods.forEach(method => {
-          promises.push(request(app)[method]('/api/comments'));
+          promises.push(request(app)[method]('/api/comments/1'));
         });
         return Promise.all(promises).then(responses => {
           responses.forEach(response => {
@@ -792,112 +869,97 @@ describe('/wrongPath', () => {
           });
         });
       });
-      describe('/api/comments/:comment_id', () => {
-        it('ERROR 405: sends a Method Not Allowed error to any unhandled method requests', () => {
-          const methods = ['post', 'put', 'get'];
-          const promises = [];
-          methods.forEach(method => {
-            promises.push(request(app)[method]('/api/comments/1'));
+      it('PATCH 200: returns an object containing the updated comment', () => {
+        return request(app)
+          .patch('/api/comments/1')
+          .send({ inc_votes: 1 })
+          .expect(200)
+          .then(response => {
+            expect(response.body.comment.votes).to.equal(17);
+            expect(response.body.comment).to.have.keys(
+              'comment_id',
+              'author',
+              'article_id',
+              'votes',
+              'created_at',
+              'body'
+            );
           });
-          return Promise.all(promises).then(responses => {
-            responses.forEach(response => {
-              expect(response.body.msg).to.equal('Method Not Allowed');
-              expect(response.status).to.equal(405);
-            });
+      });
+      it('PATCH 200: ignores incorrect keys in body and returns unchanged comment object', () => {
+        return request(app)
+          .patch('/api/comments/1')
+          .send({ banana: 1 })
+          .expect(200)
+          .then(response => {
+            expect(response.body.comment.votes).to.equal(16);
           });
-        });
-        it('PATCH 200: returns an object containing the updated comment', () => {
-          return request(app)
-            .patch('/api/comments/1')
-            .send({ inc_votes: 1 })
-            .expect(200)
-            .then(response => {
-              expect(response.body.comment.votes).to.equal(17);
-              expect(response.body.comment).to.have.keys(
-                'comment_id',
-                'author',
-                'article_id',
-                'votes',
-                'created_at',
-                'body'
-              );
-            });
-        });
-        it('PATCH 200: ignores incorrect keys in body and returns unchanged comment object', () => {
-          return request(app)
-            .patch('/api/comments/1')
-            .send({ banana: 1 })
-            .expect(200)
-            .then(response => {
-              expect(response.body.comment.votes).to.equal(16);
-            });
-        });
-        it('PATCH 200: ignores an empty body and returns the unchanged comment object', () => {
-          return request(app)
-            .patch('/api/comments/1')
-            .send({})
-            .expect(200)
-            .then(response => {
-              expect(response.body.comment.votes).to.equal(16);
-            });
-        });
-        it('ERROR 404: returns a Not Found error when passed a non existent comment_id', () => {
-          return request(app)
-            .patch('/api/comments/999')
-            .send({ inc_votes: 1 })
-            .expect(404)
-            .then(response => {
-              expect(response.body.msg).to.equal('Comment Not Found');
-            });
-        });
-        it('ERROR 400: returns a Bad Request error when passed an invalid comment_id', () => {
-          return request(app)
-            .patch('/api/comments/banana')
-            .send({ inc_votes: 1 })
-            .expect(400)
-            .then(response => {
-              expect(response.body.msg).to.equal(
-                'Bad Request - Invalid Data Type'
-              );
-            });
-        });
-        it('ERROR 400: returns a Bad Request error when passed an invalid data value for specified column', () => {
-          return request(app)
-            .patch('/api/comments/1')
-            .send({ inc_votes: 'banana' })
-            .expect(400)
-            .then(response => {
-              expect(response.body.msg).to.equal(
-                'Bad Request - Invalid Data Type'
-              );
-            });
-        });
-        it('DELETE 204: returns a status code of 204 but no body on successful delete', () => {
-          return request(app)
-            .delete('/api/comments/1')
-            .expect(204);
-        });
-        it('ERROR 404: returns a Not Found error when passed a non existent comment id', () => {
-          return request(app)
-            .delete('/api/comments/999')
-            .expect(404)
-            .then(response => {
-              expect(response.body.msg).to.equal('Comment Not Found');
-            });
-        });
+      });
+      it('PATCH 200: ignores an empty body and returns the unchanged comment object', () => {
+        return request(app)
+          .patch('/api/comments/1')
+          .send({})
+          .expect(200)
+          .then(response => {
+            expect(response.body.comment.votes).to.equal(16);
+          });
+      });
+      it('ERROR 404: returns a Not Found error when passed a non existent comment_id', () => {
+        return request(app)
+          .patch('/api/comments/999')
+          .send({ inc_votes: 1 })
+          .expect(404)
+          .then(response => {
+            expect(response.body.msg).to.equal('Comment Not Found');
+          });
+      });
+      it('ERROR 400: returns a Bad Request error when passed an invalid comment_id', () => {
+        return request(app)
+          .patch('/api/comments/banana')
+          .send({ inc_votes: 1 })
+          .expect(400)
+          .then(response => {
+            expect(response.body.msg).to.equal(
+              'Bad Request - Invalid Data Type'
+            );
+          });
+      });
+      it('ERROR 400: returns a Bad Request error when passed an invalid data value for specified column', () => {
+        return request(app)
+          .patch('/api/comments/1')
+          .send({ inc_votes: 'banana' })
+          .expect(400)
+          .then(response => {
+            expect(response.body.msg).to.equal(
+              'Bad Request - Invalid Data Type'
+            );
+          });
+      });
+      it('DELETE 204: returns a status code of 204 but no body on successful delete', () => {
+        return request(app)
+          .delete('/api/comments/1')
+          .expect(204);
+      });
+      it('ERROR 404: returns a Not Found error when passed a non existent comment id', () => {
+        return request(app)
+          .delete('/api/comments/999')
+          .expect(404)
+          .then(response => {
+            expect(response.body.msg).to.equal('Comment Not Found');
+          });
       });
     });
-    it("ERROR 418: you're a teapot", () => {
-      const methods = ['get', 'patch', 'post', 'put', 'delete'];
-      const promises = [];
-      methods.forEach(method => {
-        promises.push(request(app)[method]('/api/teapot'));
-      });
-      return Promise.all(promises).then(responses => {
-        responses.forEach(response => {
-          expect(response.body.msg).to.equal("I'm a teapot");
-          expect(response.status).to.equal(418);
-        });
+  });
+  it("ERROR 418: you're a teapot", () => {
+    const methods = ['get', 'patch', 'post', 'put', 'delete'];
+    const promises = [];
+    methods.forEach(method => {
+      promises.push(request(app)[method]('/api/teapot'));
+    });
+    return Promise.all(promises).then(responses => {
+      responses.forEach(response => {
+        expect(response.body.msg).to.equal("I'm a teapot");
+        expect(response.status).to.equal(418);
       });
     });
   });
