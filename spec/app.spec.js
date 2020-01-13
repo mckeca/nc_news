@@ -47,7 +47,7 @@ describe('/wrongPath', () => {
         .get('/api?limit=5')
         .expect(200)
         .then(response => {
-          const endpointsArr = Object.entries(response.body.endpoints)
+          const endpointsArr = Object.entries(response.body.endpoints);
           expect(endpointsArr.length).to.equal(5);
         });
     });
@@ -56,9 +56,9 @@ describe('/wrongPath', () => {
         .get('/api?limit=5&page=2')
         .expect(200)
         .then(response => {
-          const endpointsArr = Object.entries(response.body.endpoints)
+          const endpointsArr = Object.entries(response.body.endpoints);
           expect(endpointsArr.length).to.equal(5);
-          expect(endpointsArr[0][0]).to.equal('GET /api/users/:username')
+          expect(endpointsArr[0][0]).to.equal('GET /api/users/:username');
         });
     });
     it('GET 200: ignores limit query when passed an invalid data type', () => {
@@ -66,7 +66,7 @@ describe('/wrongPath', () => {
         .get('/api?limit=whaaaaat')
         .expect(200)
         .then(response => {
-          const endpointsArr = Object.entries(response.body.endpoints)
+          const endpointsArr = Object.entries(response.body.endpoints);
           expect(endpointsArr.length).to.equal(10);
         });
     });
@@ -75,9 +75,9 @@ describe('/wrongPath', () => {
         .get('/api?page=nooooooo')
         .expect(200)
         .then(response => {
-          const endpointsArr = Object.entries(response.body.endpoints)
+          const endpointsArr = Object.entries(response.body.endpoints);
           expect(endpointsArr.length).to.equal(10);
-          expect(endpointsArr[0][0]).to.equal('GET /api')
+          expect(endpointsArr[0][0]).to.equal('GET /api');
         });
     });
     describe('/api/topics', () => {
