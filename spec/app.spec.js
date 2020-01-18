@@ -151,6 +151,38 @@ describe('/wrongPath', () => {
             );
           });
       });
+      describe('/api/topics/:topic_id', () => {
+        it('ERROR 405: sends a Method Not Allowed error to any unhandled method requests', () => {
+          const methods = ['post', 'patch', 'put', 'delete'];
+          const promises = [];
+          methods.forEach(method => {
+            promises.push(request(app)[method]('/api/topics/coding'));
+          });
+          return Promise.all(promises).then(responses => {
+            responses.forEach(response => {
+              expect(response.body.msg).to.equal('Method Not Allowed');
+              expect(response.status).to.equal(405);
+            });
+          });
+        });
+        it('GET 200: a request to a valid topic slug returns an object of that topic', () => {
+          return request(app)
+            .get('/api/topics/mitch')
+            .expect(200)
+            .then(response => {
+              expect(response.body.topic).to.be.an('object');
+              expect(response.body.topic).to.have.keys('slug', 'description');
+            });
+        });
+        it('ERROR 404: returns a 404 Not Found error when topic slug does not exist', () => {
+          return request(app)
+            .get('/api/topics/topic')
+            .expect(404)
+            .then(response => {
+              expect(response.body.msg).to.equal('Topic Not Found');
+            });
+        });
+      });
     });
     describe('/api/users', () => {
       it('ERROR 405: sends a Method Not Allowed error to any unhandled method requests', () => {

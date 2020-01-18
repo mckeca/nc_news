@@ -14,4 +14,15 @@ const insertTopic = ({ description, slug }) => {
     });
 };
 
-module.exports = { selectTopics, insertTopic };
+const selectTopicBySlug = topic_slug => {
+  return connection('topics')
+    .select('*')
+    .where('topics.slug', '=', topic_slug)
+    .then(topicRows => {
+      if (!topicRows.length)
+        return Promise.reject({ status: 404, msg: 'Topic Not Found' });
+      else return topicRows[0];
+    });
+};
+
+module.exports = { selectTopics, selectTopicBySlug, insertTopic };
